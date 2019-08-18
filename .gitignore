@@ -1,0 +1,11 @@
+apidoc
+apidoc.json
+node_modules
+.vscode
+npm-debug.log
+.serverless
+src/routes/route_names.json
+.env*
+.webpack
+*.swp
+jsconfig.json
