@@ -12,6 +12,7 @@ provider:
   versionFunctions: false # disable creating new version on new every new deployment
   environment:
     NODE_ENV: ${self:provider.stage}
+    STORAGE_DOMAIN: http://asiance.s3-website.ap-northeast-2.amazonaws.com
     DEFAULT_PAGINATION_LIMIT: '10'
     MONGODB_SERVER: ${ssm:/mangodb/host}
     MONGODB_USER: ${ssm:/mangodb/user}
