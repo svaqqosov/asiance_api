@@ -1,5 +1,5 @@
 global.basePath = __dirname;
-module.require('dotenv').load();
+module.require('dotenv').config();
 const awsServerlessExpress = module.require('aws-serverless-express');
 const Database = module.require('./db');
 

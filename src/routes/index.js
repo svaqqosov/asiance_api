@@ -6,6 +6,6 @@ router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
 
 router.use('/authors', require('./authors'));
-// router.use('/posts', require('./posts'));
+router.use('/posts', require('./posts'));
 
 module.exports = router;

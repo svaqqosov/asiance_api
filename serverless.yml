@@ -5,7 +5,7 @@ provider:
   runtime: nodejs10.x   # set node.js runtime
   stage: ${opt:stage, 'dev'}
   # profile: ${opt:aws-profile, self:provider.stage}
-  # profile: 'dev'
+  profile: 'custom'
   region: 'ap-northeast-2'
   memorySize: 1024   # set the maximum memory of the Lambdas in Megabytes
   timeout: 10   # the timeout is 10 seconds (default is 6 seconds)

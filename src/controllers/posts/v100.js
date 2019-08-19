@@ -1,27 +1,27 @@
+const Post = require('@models/post');
 const Author = require('@models/author');
 
 /**
- * @api {post} /authors?version=v100 Create an author
+ * @api {post} /posts?version=v100 Create an post
  * @apiVersion  1.0.0
- * @apiName createAuthor
- * @apiGroup Author
+ * @apiName createPost
+ * @apiGroup Post
  *
- * @apiParam {String} name Author name.
- * @apiParam {String} role Role
- * @apiParam {String} location Location.
+ * @apiParam {String} name Post name.
+ * @apiParam {String} title Role
+ * @apiParam {String} body Body.
  *
  * @apiSuccess {String} msg_code Message code.
- * @apiSuccess {Object} data  Author data.
+ * @apiSuccess {Object} data  Post data.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     {
- *        "msg_code": "AUTHOR_CREATED",
+ *        "msg_code": "POST_CREATED",
  *        "data": {
  *          "id": "487bb1e6-e35a-44d4-a261-16ec2dd68d9d",
- *          "name": "Jenifer Ware",
- *          "role": "orc",
- *          "location": "Sanchezview",
+ *          "title": "test",
+ *          "body": "test"
  *        }
  *      }
  * @apiError VALIDATION_ERROR Some field are not correct.
@@ -32,11 +32,11 @@ const Author = require('@models/author');
  *      "errors": [
  *        {
  *          "field": [
- *            "Name"
+ *            "Titile"
  *          ],
  *          "location": "body",
  *          "messages": [
- *            "name is required"
+ *            "title is required"
  *          ],
  *          "types": [
  *            "any.required"
@@ -46,7 +46,7 @@ const Author = require('@models/author');
  *    }
  */
 /**
- * Create new author
+ * Create new post
  *
  * @param {*} req
  * @param {*} res
@@ -56,8 +56,8 @@ const create = async (req, res, next) => {
   try {
     const local = req.body;
 
-    const author = await Author.create(local);
-    res.status(201).json({ msgCode: 'AUTHOR_CREATED', data: author });
+    const post = await Post.create(local);
+    res.status(201).json({ msgCode: 'POST_CREATED', data: post });
   } catch (err) {
     console.log('sdfsfd');
     next(err);
@@ -65,30 +65,29 @@ const create = async (req, res, next) => {
 };
 
 /**
- * @api {get} /authors?version=v100 Get list of authors
+ * @api {get} /posts?version=v100 Get list of posts
  * @apiVersion  1.0.0
- * @apiName listAuthors
- * @apiGroup Author
+ * @apiName listPosts
+ * @apiGroup Post
  * @apiParam  {String} [offset=0] number of items to skip
  * @apiParam  {String} [limit=12] items per pages
- * @apiParam  {String} [name] name to filter
- * @apiParam  {String} [role] role to filter
+ * @apiParam  {String} [title] title to filter
+ * @apiParam  {String} [body] body to filter
  *
- * @apiSuccess {Object} data Authors.
+ * @apiSuccess {Object} data Posts.
  *
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
  *     {
- *        "msg_code": "AUTHOR_CREATED",
+ *        "msg_code": "POST_CREATED",
  *        "data": {
  *          "id": "487bb1e6-e35a-44d4-a261-16ec2dd68d9d",
- *          "name": "Jenifer Ware",
- *          "role": "orc",
- *          "location": "Sanchezview",
+ *          "title": "test",
+ *          "body": "test"
  *        }
  *      }
 /**
- * Paginated list of all authors
+ * Paginated list of all posts
  *
  * @param {*} req
  * @param {*} res
@@ -135,37 +134,47 @@ const list = async (req, res, next) => {
       docs: 'items'
     };
 
-    const authors = await Author.paginate(query, options);
-    res.status(200).json({ data: authors });
+    const posts = await Post.paginate(query, options);
+    const authorIds = posts.items.map(item => item.authorId);
+    // console.log(authorIds);
+    const authors = await Author.find({ _id: { $in: authorIds } }).exec();
+    const updatedPosts = posts.items.map((item) => {
+      const local = item;
+      local.author = authors.map((a) => {
+        if (a.id === item.authorId) return a;
+        return null;
+      }).pop();
+      return local;
+    });
+    res.status(200).json({ data: updatedPosts });
   } catch (err) {
     next(err);
   }
 };
 
 /**
- * @api {get} /authors/:id?version=v100 Get one author
+ * @api {get} /posts/:id?version=v100 Get one post
  * @apiVersion  1.0.0
- * @apiName loadAuthor
- * @apiGroup Author
+ * @apiName loadPost
+ * @apiGroup Post
  *
- * @apiSuccess {Object} data Author.
+ * @apiSuccess {Object} data Post.
  *
- * @apiParam {String} id ID of the Author to update
+ * @apiParam {String} id ID of the Post to update
  *
  * @apiSuccessExample Success-Response:
  *  {
  *    "data": [
  *      {
  *          "id": "487bb1e6-e35a-44d4-a261-16ec2dd68d9d",
- *          "name": "Jenifer Ware",
- *          "role": "orc",
- *          "location": "Sanchezview",
+ *          "title": "test",
+ *          "body": "test"
  *      }
  *    ]
  *  }
  */
 /**
- * Load a single author
+ * Load a single post
  *
  * @param {*} req
  * @param {*} res
@@ -173,43 +182,42 @@ const list = async (req, res, next) => {
  */
 const load = async (req, res, next) => {
   try {
-    const author = await Author.findById(req.params.id).exec();
-    if (author === null) {
-      res.status(404).json({ msgCode: 'AUTHOR_NOT_FOUND' });
+    const post = await Post.findById(req.params.id).exec();
+    if (post === null) {
+      res.status(404).json({ msgCode: 'POST_NOT_FOUND' });
     }
-    res.status(200).json({ data: author });
+    res.status(200).json({ data: post });
   } catch (err) {
     next(err);
   }
 };
 
 /**
- * @api {put} /author/:id?version=v100 Update an Author
- * @apiName updateAuthor
- * @apiGroup Author
+ * @api {put} /post/:id?version=v100 Update an Post
+ * @apiName updatePost
+ * @apiGroup Post
  * @apiVersion  1.0.0
  *
  * @apiParam {String} id ID of the User to update
- * @apiParam {String} [name] Name of the Author.
- * @apiParam {String} [role] Role of the Author.
+ * @apiParam {String} [title] Title of the Post.
+ * @apiParam {String} [body] body of the Post.
  *
- * @apiSuccess {Object} data User.
+ * @apiSuccess {Object} data Post.
  *
  * @apiSuccessExample {type} Success-Response:
  *  {
  *    "data":
  *      {
- *      "id": "487bb1e6-e35a-44d4-a261-16ec2dd68d9d",
- *      "name": "Jenifer Ware",
- *      "role": "orc",
- *      "location": "Sanchezview",
- *      "createdAt": "2018-06-05T06:32:45.000Z",
- *      "updatedAt": "2018-06-05T07:07:15.000Z",
+ *          "id": "487bb1e6-e35a-44d4-a261-16ec2dd68d9d",
+ *          "title": "test",
+ *          "body": "test"
+ *          "createdAt": "2018-06-05T06:32:45.000Z",
+ *          "updatedAt": "2018-06-05T07:07:15.000Z",
  *      }
  *  }
  */
 /**
- * Update an author from database
+ * Update an post from database
  *
  * @param {*} req
  * @param {*} res
@@ -220,27 +228,27 @@ const update = async (req, res, next) => {
   delete data.id;
   const filter = { _id: req.params.id };
   try {
-    const author = await Author.findOneAndUpdate(filter, data, {
+    const post = await Post.findOneAndUpdate(filter, data, {
       new: true
     });
-    if (author === null) {
-      res.status(404).json({ msgCode: 'AUTHOR_NOT_FOUND' });
+    if (post === null) {
+      res.status(404).json({ msgCode: 'POST_NOT_FOUND' });
     }
-    res.status(200).json({ msgCode: 'AUTHOR_UPDATED', data: author });
+    res.status(200).json({ msgCode: 'POST_UPDATED', data: post });
   } catch (err) {
     next(err);
   }
 };
 
 /**
- * @api {delete} /authors/:id?version=v100 Delete an Author
- * @apiName deleteAuthor
- * @apiGroup Author
+ * @api {delete} /posts/:id?version=v100 Delete an Post
+ * @apiName deletePost
+ * @apiGroup Post
  * @apiVersion  1.0.0
  *
- * @apiParam {String} id ID of the Author to delete
+ * @apiParam {String} id ID of the Post to delete
  *
- * @apiSuccess {String} data Id of the deleted author.
+ * @apiSuccess {String} data Id of the deleted post.
  *
  * @apiSuccessExample {type} Success-Response:
  *  {
@@ -248,7 +256,7 @@ const update = async (req, res, next) => {
  *  }
  */
 /**
- * Delete a author form database
+ * Delete a post form database
  *
  * @param {*} req
  * @param {*} res
@@ -256,11 +264,11 @@ const update = async (req, res, next) => {
  */
 const remove = async (req, res, next) => {
   try {
-    const author = await Author.findOneAndDelete({ _id: req.params.id }).exec();
-    if (author === null) {
-      res.status(404).json({ msgCode: 'AUTHOR_NOT_FOUND' });
+    const post = await Post.findOneAndDelete({ _id: req.params.id }).exec();
+    if (post === null) {
+      res.status(404).json({ msgCode: 'POST_NOT_FOUND' });
     }
-    res.status(200).json({ msgCode: 'AUTHOR_DELETED', data: { id: req.params.id } });
+    res.status(200).json({ msgCode: 'POST_DELETED', data: { id: req.params.id } });
   } catch (err) {
     next(err);
   }
